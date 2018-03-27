@@ -1,0 +1,102 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+		http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.2.xsd 
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-3.2.xsd 
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx-3.2.xsd ">
+		
+		<!--扫描组件的包目录-->
+    	<!-- <context:component-scan base-package="com.neuedu.test.bean"/>
+    	<bean id="user" class="com.neuedu.test.bean.User" scope="prototype"></bean>   -->
+		
+		<!-- <bean id="User1" class="com.neuedu.test.bean.User">
+			<property name="userName" value="张老三"></property>
+			<property name="userAge" value="23"></property>
+			<property name="birthday" value="1991-06-06"></property>
+			<property name="address" value="新秀街"></property>
+		</bean>
+		<bean id="User2" class="com.neuedu.test.bean.User">
+			<property name="userName" value="李老四"></property>
+			<property name="userAge" value="24"></property>
+			<property name="birthday" value="1991-07-07"></property>
+			<property name="address" value="世纪路"></property> 
+		</bean>-->
+		
+		<!-- 通过构造方法注入bean -->
+		<bean id="Student1" class="com.neuedu.perspn.testSpringIOC.Student">
+			<constructor-arg value="张三"></constructor-arg>
+			<constructor-arg value="23"></constructor-arg>
+		</bean>
+		
+		<!-- 通过setter方法注入bean -->
+		<bean id="Student2" class="com.neuedu.perspn.testSpringIOC.Student">
+			<property name="name" value="李四"></property>
+			<property name="age" value="24"></property>
+		</bean>
+		
+		
+		<!-- 加载db.properties文件中的内容，db.properties文件中key命名要有一定的特殊规则 -->
+		<context:property-placeholder location="classpath:db.properties"/>
+		<!--配置数据源dbcp -->
+		<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+			<property name="driverClassName" value="${jdbc.driver}"></property>
+			<property name="url" value="${jdbc.url}"></property>
+			<property name="username" value="${jdbc.username}"></property>
+			<property name="password" value="${jdbc.password}"></property>
+			<!-- 连接池的最大数据库连接数。设置0表示无限制 -->
+			<property name="maxActive" value="30"></property>
+			<!-- 最大空闲数，数据库连接的最大空闲时间。超过空闲时间，数据库连接将被标记为不可用，然后被释放。设置0表示无限制 -->
+			<property name="maxIdle" value="5"></property>
+		</bean>
+		
+		<!-- 配置sqlSessionFactory -->
+		<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<!-- 数据库连接池 -->
+			<property name="dataSource" ref="dataSource"/>
+			<!-- 加载mybatis的全局配置文件 -->
+			<!-- <property name="configLocation" value="/WEB-INF/config/mybatis/sqlMapConfig.xml"/> -->
+		</bean>
+		
+		<!-- 配置声明式事物 -->
+		<!-- 事物管理器 对mybatis操作数据库事物控制，spring使用jdbc的事物控制类 -->
+		<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+			<property name="dataSource" ref="dataSource"></property>
+		</bean>
+		<!-- 增强、通知 -->
+		<tx:advice id="txAdvice" transaction-manager="transactionManager">
+			<tx:attributes>
+				<!-- 传播行为 -->
+				<tx:method name="save*" propagation="REQUIRED"/>
+				<tx:method name="delete*" propagation="REQUIRED"/>
+				<tx:method name="insert*" propagation="REQUIRED"/>
+				<tx:method name="update*" propagation="REQUIRED"/>
+				<tx:method name="find*" propagation="SUPPORTS" read-only="true"/>
+				<tx:method name="get*" propagation="SUPPORTS" read-only="true"/>
+				<tx:method name="select*" propagation="SUPPORTS" read-only="true"/>
+			</tx:attributes>
+		</tx:advice>
+		
+		<!-- aop -->
+		<aop:config>
+			<aop:advisor advice-ref="txAdvice" pointcut="execution(* com.neuedu.attendance.*.service.*.*(..))"/>
+		</aop:config>
+		
+		<!-- spring和mybatis整合配置，MapperScannerConfigurer会自动扫描basePackage指定的包，扫描多有mapper，找到映射接口类和映射xml文件，并实例化-->
+		<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"
+		p:basePackage="com.neuedu.attendance.*.mapper"
+		p:sqlSessionFactoryBeanName="sqlSessionFactory">
+		</bean>
+		
+		<!-- 自动注册service -->
+		<!-- <context:component-scan base-package="com.neuedu.attendance.*.service"></context:component-scan> -->
+</beans>

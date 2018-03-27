@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	
+	<!-- 配置mapper
+	由于使用spring和mybatis的整合包进行mapper扫描，这里不需要配置了。
+	 -->
+
+	<!-- <mappers>
+		 <mapper resource="com/neuedu/login/mapper/LoginMapper.xml"></mapper>
+	</mappers> -->
+</configuration>
